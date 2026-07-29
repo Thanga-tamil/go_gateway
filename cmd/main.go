@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -27,6 +28,16 @@ func main() {
 		DisableColors:   false,
 		// TimestampFormat: "2006-01-02 15:04:05",
 	})
+
+
+	// func OpenFile(name string, flag int, perm FileMode) (*File, error) {
+	logFile, err := os.OpenFile("app.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		log.Fatalln("Error while opening service log append file: ", err.Error())
+	}
+	defer logFile.Close()
+
+    logrus.SetOutput(logFile)
 
 	logrus.Info("Serve http request response using engine 'net/http'")
 
