@@ -4,8 +4,8 @@ import (
 	"os"
 	"encoding/json"
 
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/Thanga-tamil/noway_service/internal/utils"
-	"github.com/sirupsen/logrus"
 )
 
 type Cfg struct {
@@ -34,16 +34,16 @@ func LoadConfig() Cfg {
 	file, err := os.Open(utils.CONF_PATH)
 
 	if err != nil {
-		logrus.Fatalf("Error while opening %s file \n", err.Error())
+		logger.Fatalf("Error while opening %s file \n", err.Error())
 	}
 
 	var c Cfg 
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&c)
 	if err != nil {
-		logrus.Fatalf("Error decoding JSON: %v", err)
+		logger.Fatalf("Error decoding JSON: %v", err)
 	}
-	logrus.Infof("decoded config.json file: %#v\n", c)
+	logger.Infof("decoded config.json file: %#v\n", c)
 
 	return c
 }

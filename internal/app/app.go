@@ -1,15 +1,14 @@
 package app
 
 import (
-	"github.com/sirupsen/logrus"
-
 	"github.com/Thanga-tamil/noway_service/internal/config"
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/Thanga-tamil/noway_service/internal/service"
 )
 
 func App(c config.Cfg) {
 
-	logrus.Info("Initialize required services from app.go")
+	logger.Info("Initialize required services from app.go")
 
 	// config.InitSql(c)
 
@@ -19,11 +18,12 @@ func App(c config.Cfg) {
 	// 	logrus.Infof("Connected to Redis: %s Redis init success", pong)
 	// }
 
+	// logrus.Info("Required services initialization completed successfully")
 	if err := service.LoadJwtSignKeyInCache(); err != nil {
-		logrus.Fatalf("Error while loading Jwt sign key in inmemory: %s", err)
+		logger.Fatalf("Error while loading Jwt sign key in inmemory: %s", err)
 	} else {
-		logrus.Info("Jwt sign key loaded in memory successfully")
+		logger.Info("Jwt sign key loaded in memory successfully")
 	}
  
-	logrus.Info("Required services initialization completed successfully")
 }
+

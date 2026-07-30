@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/sirupsen/logrus"
 )
 
 type SecretJwk struct {
@@ -24,7 +24,7 @@ func LoadJwtSignKeyInCache() error {
 	file, err := os.Open(utils.SECRET_K)
 
 	if err != nil {
-		logrus.Infof("Error while opening JWT secret key file: %s", err.Error())
+		logger.Infof("Error while opening JWT secret key file: %s", err.Error())
 		return err
 	}
 
@@ -34,12 +34,12 @@ func LoadJwtSignKeyInCache() error {
 	err = dec.Decode(&secretJwk)
 
 	if err != nil {
-		logrus.Infof("Error while decoding JWT secret sign key: %s", err.Error())
+		logger.Infof("Error while decoding JWT secret sign key: %s", err.Error())
 		return err
 	}
 
 	JwtSignK = []byte(secretJwk.K)
-	logrus.Println("JWT secret key has been added in inmemory")
+	logger.Info("JWT secret key has been added in inmemory")
 
 	return nil
 }
@@ -58,7 +58,7 @@ func ServeJwt(username string) (string, error) {
 		return "", err
 	}
 
-	logrus.Println("Generated Jwt token: ", jwtToken)
+	logger.Info("Generated Jwt token: ", jwtToken)
 	
 	return jwtToken, nil
 

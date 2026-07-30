@@ -10,9 +10,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 
-	"github.com/sirupsen/logrus"
-
 	"github.com/Thanga-tamil/noway_service/internal/dto"
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/Thanga-tamil/noway_service/internal/response"
 	"github.com/Thanga-tamil/noway_service/internal/service"
 	"github.com/Thanga-tamil/noway_service/internal/utils"
@@ -28,7 +27,7 @@ func HandleUserRegister(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, err.Error()); return
 	}
 
-	logrus.Infof("parsed register user input: %#v\n", user)
+	logger.Infof("parsed register user input: %#v\n", user)
 
 	userId := uuid.New().String()
 
@@ -56,7 +55,7 @@ func parseInputFromReq(c *gin.Context) (dto.UserRegisterReqPayload, error) {
 	var user dto.UserRegisterReqPayload
 	if err := c.ShouldBindBodyWith(&user, binding.JSON); err != nil {
 
-		logrus.Info("Error while Decode input payload: ", err)
+		logger.Info("Error while Decode input payload: ", err)
 		resp := map[string]any{
 			"status": 400,
 			"message": "Request body must not be null"}
@@ -65,7 +64,7 @@ func parseInputFromReq(c *gin.Context) (dto.UserRegisterReqPayload, error) {
 	}
 
 	if err := service.ValidateInput(user); err != nil {
-		logrus.Error("input payload validation error: ", err)
+		logger.Error("input payload validation error: ", err)
 
 		msg := map[string]any{"status": 400, "message": err.Error()}
 		val, _ := json.Marshal(msg)
@@ -89,10 +88,11 @@ func GenerateJwtToken(c *gin.Context) {
 		return
 	}
 
+
 	jwt, err := service.ServeJwt(userId)
 
 	if err != nil {
-		logrus.Infof("Error on return of ServeJwt: %s", err.Error())
+		logger.Infof("Error on return of ServeJwt: %s", err.Error())
 		panic(err)
 	}
 

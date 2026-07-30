@@ -2,8 +2,8 @@ package repository
 
 import (
 	"time"
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 func SaveRegisterUser(db *sqlx.DB, useId string, username, mobileNumber, 
@@ -16,11 +16,11 @@ func SaveRegisterUser(db *sqlx.DB, useId string, username, mobileNumber,
 	result, err := db.Exec(stmt, useId, username, emailID, mobileNumber, now, isDeleted)
 
 	if err != nil {
-		logrus.Error("error while inserting into table user:: ", err.Error())
+		logger.Error("error while inserting into table user:: ", err.Error())
 		return err
 	}
 
-	logrus.Info("user register db insert result:: ", result)
+	logger.Info("user register db insert result:: ", result)
 
 	return nil
 }

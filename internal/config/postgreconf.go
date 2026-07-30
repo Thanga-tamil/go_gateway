@@ -3,8 +3,8 @@ package config
 import (
 	"fmt"
 	_ "github.com/lib/pq"
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/jmoiron/sqlx"
-	"github.com/sirupsen/logrus"
 )
 
 var MasterDB *sqlx.DB
@@ -21,14 +21,14 @@ func InitSql(c Cfg) {
 	 db, err := sqlx.Open(c.Postgre.Type, get_db_uri(c))
 
 	 if err != nil {
-		 logrus.Error("error while opening tcp connection with postgreSQL: ", err.Error())
+		logger.Error("error while opening tcp connection with postgreSQL: ", err.Error())
 		 panic(err)
 	 }
 
 	 lookupDB := "SET SEARCH_PATH TO datasource;"
 
 	 if _, err := db.Exec(lookupDB); err != nil {
-		 logrus.Error("error when executing search path for tenant config: ", err.Error())
+		 logger.Error("error when executing search path for tenant config: ", err.Error())
 		 panic(err)
 	 } else {
 		 MasterDB = db
@@ -37,7 +37,7 @@ func InitSql(c Cfg) {
 	 row, err := db.Query("select api_domain, datasource from connection_config;")
 
 	 if err != nil {
-		 logrus.Error("error while executing Query func:: ", err.Error())
+		logger.Error("error while executing Query func:: ", err.Error())
 	 }
 
 	 var tenantDBs []TenantSource
@@ -45,12 +45,12 @@ func InitSql(c Cfg) {
 	 for row.Next() {
 		 var tenantDB TenantSource
 		 if err := row.Scan(&tenantDB.ApiDomain, &tenantDB.DataSource); err != nil {
-			 logrus.Error("error while Scanning executed query for tenant search path:: ", err.Error())
+			logger.Error("error while Scanning executed query for tenant search path:: ", err.Error())
 		 }
 		 tenantDBs = append(tenantDBs, tenantDB)
 	 }
 
-	 logrus.Infof("Tenant datasource from master config: %#v\n", tenantDBs)
+		logger.Infof("Tenant datasource from master config: %#v\n", tenantDBs)
 	 loadTenantDBs(c, tenantDBs)
 }
 
@@ -68,14 +68,14 @@ func loadTenantDBs(c Cfg, tenantDBs []TenantSource){
 		db, err := sqlx.Open(c.Postgre.Type, get_db_uri(c))
 
 		if err != nil {
-			logrus.Error("error while opening tcp connection with postgreSQL: ", err.Error())
+			logger.Error("error while opening tcp connection with postgreSQL: ", err.Error())
 			panic(err)
 		}
 
 		lookupDB := "SET SEARCH_PATH TO " + tenant.DataSource + " ;"
 
 		if _, err := db.Exec(lookupDB); err != nil {
-			logrus.Error("error when executing search path for tenant config: ", err.Error())
+			logger.Error("error when executing search path for tenant config: ", err.Error())
 			panic(err)
 		} else {
 			dbs[tenant.ApiDomain] = db

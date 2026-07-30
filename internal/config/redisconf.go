@@ -4,8 +4,8 @@ import (
 	"context"
 	"strconv"
 
+	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/redis/go-redis/v9"
-	"github.com/sirupsen/logrus"
 )
 
 var GoRedis *redis.Client
@@ -14,11 +14,11 @@ var ctx = context.Background()
 
 func InitRedis(c Cfg) (string, error) {
 
-	logrus.Info("Initializing redis instance")
+	logger.Info("Initializing redis instance")
 
 	addr := c.Rcache.Host + ":" + strconv.Itoa(c.Rcache.Port)
 
-	logrus.Infof("redis address '%s'\n", addr)
+	logger.Infof("redis address '%s'\n", addr)
 
 	// Connect to Redis
 	GoRedis = redis.NewClient(&redis.Options{
