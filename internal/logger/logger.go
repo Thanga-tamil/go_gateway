@@ -30,7 +30,6 @@ func Init(logPath string, logLevel int) {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
-	fmt.Println("logLevel from config: ", logLevel)
 	var level zapcore.Level
 
 	switch logLevel {
