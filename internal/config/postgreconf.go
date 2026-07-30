@@ -80,6 +80,7 @@ func loadTenantDBs(c Cfg, tenantDBs []TenantSource){
 		} else {
 			dbs[tenant.ApiDomain] = db
 		}
+		logger.Info("loading tenant db for tenant: ", tenant)
 	}
 
 	TenantDBs = dbs

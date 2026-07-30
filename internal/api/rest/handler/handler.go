@@ -19,33 +19,49 @@ import (
 
 func HandleUserRegister(c *gin.Context) {
 	tenantId := c.Request.Header.Get("tenant-x")
-	tenantDB, _ := c.Get(tenantId)
-
-	user, err := parseInputFromReq(c)
-
-	if err != nil {
-		c.JSON(http.StatusBadRequest, err.Error()); return
+	tenantDB, exists := c.Get(tenantId)
+	if !exists {
+		logger.Errorf("tenant-x '%s' not found in context", tenantId)
+		c.JSON(http.StatusBadRequest, response.Error("invalid tenant", utils.STATUS_BAD_REQUEST))
+		return
 	}
 
-	logger.Infof("parsed register user input: %#v\n", user)
+	db, ok := tenantDB.(*sqlx.DB)
+	if !ok {
+		logger.Errorf("tenant DB for '%s' has unexpected type %T", tenantId, tenantDB)
+		c.JSON(http.StatusInternalServerError, response.Error("internal server error", http.StatusInternalServerError))
+		return
+	}
+
+	user, err := parseInputFromReq(c)
+	if err != nil {
+		logger.Infof("invalid register input: %s", err.Error())
+		c.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+
+	logger.Infof("parsed register user input: %#v", user)
 
 	userId := uuid.New().String()
 
-	service.RegisterService(tenantDB.(*sqlx.DB), userId, user)
+	service.RegisterService(db, userId, user)
 
 	jwt, err := service.ServeJwt(userId)
-
 	if err != nil {
-		handleErr(c, err); return
+		logger.Errorf("failed to generate JWT for user %s: %s", userId, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Error("failed to generate token", http.StatusInternalServerError))
+		return
 	}
 
 	if err := service.StoreJwtInRedis(userId, jwt); err != nil {
-		handleErr(c, err); return
+		logger.Errorf("failed to store JWT in redis for user %s: %s", userId, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Error("failed to store token", http.StatusInternalServerError))
+		return
 	}
 
 	res := response.Success("Onboarding completed successfully",
-							utils.STATUS_OK,
-							map[string]any{"accessToken": jwt})
+		utils.STATUS_OK,
+		map[string]any{"accessToken": jwt})
 
 	c.JSON(http.StatusOK, res)
 }
@@ -76,37 +92,27 @@ func parseInputFromReq(c *gin.Context) (dto.UserRegisterReqPayload, error) {
 
 
 func GenerateJwtToken(c *gin.Context) {
-
 	userId := c.Request.Header.Get("userId")
-
 	if len(userId) == 0 {
-		resp := map[string]any{"message": "userId can not be null or empty",
-		"status": 400}
-
-		val, _ := json.Marshal(resp)
-		c.JSON(http.StatusOK, val)
+		logger.Error("GenerateJwtToken called with empty userId header")
+		c.JSON(http.StatusBadRequest, response.Error("userId cannot be empty", utils.STATUS_BAD_REQUEST))
 		return
 	}
-
 
 	jwt, err := service.ServeJwt(userId)
-
 	if err != nil {
-		logger.Infof("Error on return of ServeJwt: %s", err.Error())
-		panic(err)
-	}
-
-
-	if err := service.StoreJwtInRedis(userId, jwt); err != nil {
-		resp := map[string]any{"status": 400, "message": err.Error()}
-		val, _ := json.Marshal(resp)
-		c.JSON(http.StatusOK, val)
+		logger.Errorf("failed to generate JWT for userId '%s': %s", userId, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Error("failed to generate token", http.StatusInternalServerError))
 		return
 	}
 
-	resp := map[string]any{ "status": 200, "jwtToken": jwt}
-	val, _ := json.Marshal(resp)
-	c.JSON(http.StatusOK, val)
+	if err := service.StoreJwtInRedis(userId, jwt); err != nil {
+		logger.Errorf("failed to store JWT in redis for userId '%s': %s", userId, err.Error())
+		c.JSON(http.StatusInternalServerError, response.Error("failed to store token", http.StatusInternalServerError))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Success("token generated successfully", utils.STATUS_OK, map[string]any{"jwtToken": jwt}))
 }
 
 func handleErr(c *gin.Context, err error) {
