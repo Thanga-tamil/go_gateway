@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"os"
 
 	"go.uber.org/zap"
@@ -9,7 +10,7 @@ import (
 
 var Log *zap.SugaredLogger
 
-func Init(logPath string) {
+func Init(logPath string, logLevel int) {
 	file, err := os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		panic("failed to open log file: " + err.Error())
@@ -29,15 +30,30 @@ func Init(logPath string) {
 		EncodeCaller:   zapcore.ShortCallerEncoder,
 	}
 
+	fmt.Println("logLevel from config: ", logLevel)
+	var level zapcore.Level
+
+	switch logLevel {
+	case 1:
+		level = zap.InfoLevel
+	case 2:
+		level = zap.ErrorLevel
+	case 3:
+		level = zap.DebugLevel
+	default:
+		level = zap.InfoLevel
+	}
+
 	core := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(encoderConfig),
-		zapcore.AddSync(file),
-		zap.InfoLevel,
+		zapcore.NewMultiWriteSyncer(zapcore.AddSync(file), zapcore.AddSync(os.Stdout)),
+		level,
 	)
 
 	logger := zap.New(core)
 	Log = logger.Sugar()
 }
+
 
 func Info(args ...interface{}) {
 	Log.Info(append([]interface{}{"ℹ️"}, args...)...)
@@ -58,3 +74,8 @@ func Errorf(template string, args ...interface{}) {
 func Fatalf(template string, args ...interface{}) {
 	Log.Fatalf("💥 "+template, args...)
 }
+
+func Debug(args ...interface{}) {
+	Log.Debug(append([]interface{}{"ℹ️"}, args...)...)
+}
+

@@ -2,17 +2,18 @@ package config
 
 import (
 	"os"
+	"log"
 	"encoding/json"
 
-	"github.com/Thanga-tamil/noway_service/internal/logger"
 	"github.com/Thanga-tamil/noway_service/internal/utils"
 )
 
 type Cfg struct {
-	Host 	string 		`json:"host"`
-	Port 	int	 		`json:"port"`
-	Postgre postgre 	`json:"sql"`
-	Rcache 	redisCache 	`json:"redis"`
+	Host 	 	string 		`json:"host"`
+	Port 		int	 		`json:"port"`
+	Postgre 	postgre 	`json:"sql"`
+	Rcache 		redisCache 	`json:"redis"`
+	LogLevel	int 	 	`json:"loglevel"`	 
 }
 
 type postgre struct {
@@ -34,16 +35,17 @@ func LoadConfig() Cfg {
 	file, err := os.Open(utils.CONF_PATH)
 
 	if err != nil {
-		logger.Fatalf("Error while opening %s file \n", err.Error())
+		log.Fatalf("Error while opening %s file \n", err.Error())
 	}
 
 	var c Cfg 
 	decoder := json.NewDecoder(file)
 	err = decoder.Decode(&c)
+
 	if err != nil {
-		logger.Fatalf("Error decoding JSON: %v", err)
+		log.Fatalf("Error decoding JSON: %v", err)
 	}
-	logger.Infof("decoded config.json file: %#v\n", c)
+	log.Printf("decoded config.json file: %#v\n", c)
 
 	return c
 }

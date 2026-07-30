@@ -14,15 +14,15 @@ import (
 
 func main() {
 
-	logger.Init("app.log")
+	conf := config.LoadConfig()
+
+	logger.Init("app.log", conf.LogLevel)
 
 	logger.Infof("Starting HTTP server using net/http engine")
 
-	conf := config.LoadConfig()
-
 	app.App(conf)
 	
-	r := gin.Default() // r := gin.New()
+	r := gin.Default()
 
 	v1 := r.Group("/api/v1")
 	v2 := r.Group("/api/v2")
