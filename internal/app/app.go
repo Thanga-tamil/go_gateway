@@ -23,6 +23,8 @@ func App(c config.Cfg) {
 	} else {
 		logger.Info("Jwt sign key loaded in memory successfully")
 	}
+
+	config.InitRabbitMQConnection()
  
 	logger.Info("Required services initialization completed successfully")
 }

@@ -38,8 +38,8 @@ func LoadConfig() Cfg {
 		log.Fatalf("Error while opening %s file \n", err.Error())
 	}
 
-	var c Cfg 
 	decoder := json.NewDecoder(file)
+	var c Cfg 
 	err = decoder.Decode(&c)
 
 	if err != nil {
