@@ -1,10 +1,10 @@
 package middleware
 
 import (
+	"github.com/gin-gonic/gin"
+
 	"github.com/Thanga-tamil/noway_service/internal/config"
 	"github.com/Thanga-tamil/noway_service/internal/logger"
-
-	"github.com/gin-gonic/gin"
 )
 
 func MyMiddleware() gin.HandlerFunc {
